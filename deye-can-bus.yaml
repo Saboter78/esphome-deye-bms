@@ -3,46 +3,62 @@
 # For both cells and PCS(summary) messages you'll need an ESP32 + MCP2515
 
 esphome:
-  name: "deye-pcs-can-bus"
-  friendly_name: Deye Battery CAN
+  name: "bms"
+  comment: "DEYE Batteries monitoring"
+  friendly_name: BMS
+  min_version: 2024.6.0
+  name_add_mac_suffix: false
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.flash_size: 8MB
 
 esp32:
-  board: esp32dev
+  board: esp32-c6-devkitc-1
+  flash_size: 8MB
+  variant: esp32c6
   framework:
-    type: arduino
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_8MB: y
 
 # Enable logging
 logger:
   baud_rate: 0 # disable UART logger
-  level: WARN
+  level: DEBUG
 
 # Enable webserver
 web_server:
   port: 80
   auth:
-    username: admin
-    password: !secret wifi_password
+    username: !secret web_server_username
+    password: !secret web_server_password
   version: 3
-  log: true
+#  log: true
   ota: false
 
 # Enable Home Assistant API
 api:
-  encryption:
-    key: !secret api_deyecan
-
+  
 ota:
   - platform: esphome
-    password: !secret ota_deyecan
-
+    
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  ap:
+    ssid: "${name} Fallback"
+    password: !secret ap_password
+
+captive_portal:
+
+packages:
+  common_sensors: !include includes/common_sensors.yaml
+
 
 spi:
-  clk_pin: GPIO18 # Change to your wiring needs
-  mosi_pin: GPIO23 # Change to your wiring needs
-  miso_pin: GPIO19 # Change to your wiring needs
+  clk_pin: GPIO10
+  mosi_pin: GPIO7
+  miso_pin: GPIO6
 
 globals:
   - id: send_flag
@@ -56,27 +72,27 @@ canbus:
 ###########################################################################################################
   - platform: mcp2515
     id: mcp2515_can
-    cs_pin: GPIO17 # Change to your wiring needs
+    cs_pin: GPIO1 # tx on mine. Change to your wiring needs
     can_id: 6
     bit_rate: 250KBPS
-    # mode: LISTENONLY
-    # clock: 8MHZ
-    # use_extended_id: True
+#    mode: LISTENONLY
+#    clock: 8MHZ
+#    use_extended_id: True
     on_frame: 
 
-###########################################################################################################
-# Pack 1: Cell voltages
-###########################################################################################################
+# ###########################################################################################################
+# # Pack 1: Cell voltages
+# ###########################################################################################################
 
     - can_id: 0x02098001 
       use_extended_id: true
       then:
         - lambda: |-
-            float high_cell = ((x[0] << 8) | x[1]) / 1000.0;
+            float high_cell = ((x[0] << 8) | x[1]);
             id(pack_1_cell_high_voltage).publish_state(high_cell);
             int high_position = x[2];
             id(pack_1_cell_h).publish_state(std::to_string(high_position).c_str());
-            float low_cell = ((x[3] << 8) | x[4]) / 1000.0;
+            float low_cell = ((x[3] << 8) | x[4]);
             id(pack_1_cell_low_voltage).publish_state(low_cell);
             int low_position = x[5];
             id(pack_1_cell_l).publish_state(std::to_string(low_position).c_str());
@@ -84,64 +100,64 @@ canbus:
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_01 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_01 = ((x[0] << 8) | x[1]);
             id(pack_1_cell_01_voltage).publish_state(cell_01);
-            float cell_02 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_02 = ((x[2] << 8) | x[3]);
             id(pack_1_cell_02_voltage).publish_state(cell_02);
-            float cell_03 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_03 = ((x[4] << 8) | x[5]);
             id(pack_1_cell_03_voltage).publish_state(cell_03);
-            float cell_04 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_04 = ((x[6] << 8) | x[7]);
             id(pack_1_cell_04_voltage).publish_state(cell_04);
     - can_id: 0x04018001
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_05 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_05 = ((x[0] << 8) | x[1]);
             id(pack_1_cell_05_voltage).publish_state(cell_05);
-            float cell_06 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_06 = ((x[2] << 8) | x[3]);
             id(pack_1_cell_06_voltage).publish_state(cell_06);
-            float cell_07 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_07 = ((x[4] << 8) | x[5]);
             id(pack_1_cell_07_voltage).publish_state(cell_07);
-            float cell_08 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_08 = ((x[6] << 8) | x[7]);
             id(pack_1_cell_08_voltage).publish_state(cell_08);
     - can_id: 0x04028001
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_09 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_09 = ((x[0] << 8) | x[1]);
             id(pack_1_cell_09_voltage).publish_state(cell_09);
-            float cell_10 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_10 = ((x[2] << 8) | x[3]);
             id(pack_1_cell_10_voltage).publish_state(cell_10);
-            float cell_11 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_11 = ((x[4] << 8) | x[5]);
             id(pack_1_cell_11_voltage).publish_state(cell_11);
-            float cell_12 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_12 = ((x[6] << 8) | x[7]);
             id(pack_1_cell_12_voltage).publish_state(cell_12);
     - can_id: 0x04038001
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_13 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_13 = ((x[0] << 8) | x[1]);
             id(pack_1_cell_13_voltage).publish_state(cell_13);
-            float cell_14 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_14 = ((x[2] << 8) | x[3]);
             id(pack_1_cell_14_voltage).publish_state(cell_14);
-            float cell_15 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_15 = ((x[4] << 8) | x[5]);
             id(pack_1_cell_15_voltage).publish_state(cell_15);
-            float cell_16 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_16 = ((x[6] << 8) | x[7]);
             id(pack_1_cell_16_voltage).publish_state(cell_16);
     
-###########################################################################################################
-# Pack 2: Cell voltages
-###########################################################################################################
+# ###########################################################################################################
+# # Pack 2: Cell voltages
+# ###########################################################################################################
 
     - can_id: 0x02098002
       use_extended_id: true
       then:
         - lambda: |-
-            float high_cell = ((x[0] << 8) | x[1]) / 1000.0;
+            float high_cell = ((x[0] << 8) | x[1]);
             id(pack_2_cell_high_voltage).publish_state(high_cell);
             int high_position = x[2];
             id(pack_2_cell_h).publish_state(std::to_string(high_position).c_str());
-            float low_cell = ((x[3] << 8) | x[4]) / 1000.0;
+            float low_cell = ((x[3] << 8) | x[4]);
             id(pack_2_cell_low_voltage).publish_state(low_cell);
             int low_position = x[5];
             id(pack_2_cell_l).publish_state(std::to_string(low_position).c_str());
@@ -149,58 +165,58 @@ canbus:
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_01 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_01 = ((x[0] << 8) | x[1]);
             id(pack_2_cell_01_voltage).publish_state(cell_01);
-            float cell_02 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_02 = ((x[2] << 8) | x[3]);
             id(pack_2_cell_02_voltage).publish_state(cell_02);
-            float cell_03 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_03 = ((x[4] << 8) | x[5]);
             id(pack_2_cell_03_voltage).publish_state(cell_03);
-            float cell_04 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_04 = ((x[6] << 8) | x[7]);
             id(pack_2_cell_04_voltage).publish_state(cell_04);
     - can_id: 0x04018002
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_05 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_05 = ((x[0] << 8) | x[1]);
             id(pack_2_cell_05_voltage).publish_state(cell_05);
-            float cell_06 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_06 = ((x[2] << 8) | x[3]);
             id(pack_2_cell_06_voltage).publish_state(cell_06);
-            float cell_07 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_07 = ((x[4] << 8) | x[5]);
             id(pack_2_cell_07_voltage).publish_state(cell_07);
-            float cell_08 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_08 = ((x[6] << 8) | x[7]);
             id(pack_2_cell_08_voltage).publish_state(cell_08);
     - can_id: 0x04028002
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_09 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_09 = ((x[0] << 8) | x[1]);
             id(pack_2_cell_09_voltage).publish_state(cell_09);
-            float cell_10 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_10 = ((x[2] << 8) | x[3]);
             id(pack_2_cell_10_voltage).publish_state(cell_10);
-            float cell_11 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_11 = ((x[4] << 8) | x[5]);
             id(pack_2_cell_11_voltage).publish_state(cell_11);
-            float cell_12 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_12 = ((x[6] << 8) | x[7]);
             id(pack_2_cell_12_voltage).publish_state(cell_12);
     - can_id: 0x04038002
       use_extended_id: true
       then:
         - lambda: |-
-            float cell_13 = ((x[0] << 8) | x[1]) / 1000.0;
+            float cell_13 = ((x[0] << 8) | x[1]);
             id(pack_2_cell_13_voltage).publish_state(cell_13);
-            float cell_14 = ((x[2] << 8) | x[3]) / 1000.0;
+            float cell_14 = ((x[2] << 8) | x[3]);
             id(pack_2_cell_14_voltage).publish_state(cell_14);
-            float cell_15 = ((x[4] << 8) | x[5]) / 1000.0;
+            float cell_15 = ((x[4] << 8) | x[5]);
             id(pack_2_cell_15_voltage).publish_state(cell_15);
-            float cell_16 = ((x[6] << 8) | x[7]) / 1000.0;
+            float cell_16 = ((x[6] << 8) | x[7]);
             id(pack_2_cell_16_voltage).publish_state(cell_16);
             
-###########################################################################################################
+############################################################################################################
 # This is for PCS CAN (500KBPS), using ESP32_CAN
-###########################################################################################################            
+##########################################################################################################            
   - platform: esp32_can
     id: pcs_can
-    tx_pin: GPIO04 # CAN HIGH BLUE
-    rx_pin: GPIO016 # CAN LOW LIGHT-BLUE
+    tx_pin: GPIO5 # CAN HIGH BLUE
+    rx_pin: GPIO4 # CAN LOW LIGHT-BLUE #4k7 from tja1050
     can_id: 4
     bit_rate: 500KBPS
     on_frame:
@@ -213,7 +229,7 @@ canbus:
 
     - can_id: 0x351
       then:
-        - lambda: |-
+         - lambda: |-
             float u_max = ((x[1] << 8) | x[0]) / 10.0;
             id(battery_charge_voltage).publish_state(u_max);
             int i_charge = ((x[3] << 8) | x[2]) / 10;
@@ -226,9 +242,10 @@ canbus:
               std::vector<uint8_t> data{0x01};
               id(mcp2515_can)->send_data(0x18A2FF80, true, data);
               id(send_flag) = true;
-              ESP_LOGI("WE HAVE SENT OUR WAKE UP SIGNAL");
+              ESP_LOGI("ESP32","WE HAVE SENT OUR WAKE UP SIGNAL");
             }
           #  ESP_LOGI("canid 0x351:", "U_max: %.1f V, I_charge %d A, I_discharge: %d A, U_min %.1f V", u_max, i_charge, i_discharge, u_min );
+          
     - can_id: 0x355
       then:
         - lambda: |-
@@ -381,9 +398,9 @@ canbus:
     - can_id: 0x200 
       then:
         - lambda: |-
-            float cell_u_max = ((x[1] << 8) | x[0]) / 1000.0;
+            float cell_u_max = ((x[1] << 8) | x[0]);
             id(pack_1_max_cell_voltage).publish_state(cell_u_max);
-            float cell_u_min = ((x[3] << 8) | x[2]) / 1000.0;
+            float cell_u_min = ((x[3] << 8) | x[2]);
             id(pack_1_min_cell_voltage).publish_state(cell_u_min);
             float temp_max = ((x[5] << 8) | x[4]) / 10.0;
             id(pack_1_temp_max).publish_state(temp_max);
@@ -500,9 +517,9 @@ canbus:
     - can_id: 0x201 
       then:
         - lambda: |-
-            float cell_u_max = ((x[1] << 8) | x[0]) / 1000.0;
+            float cell_u_max = ((x[1] << 8) | x[0]);
             id(pack_2_max_cell_voltage).publish_state(cell_u_max);
-            float cell_u_min = ((x[3] << 8) | x[2]) / 1000.0;
+            float cell_u_min = ((x[3] << 8) | x[2]);
             id(pack_2_min_cell_voltage).publish_state(cell_u_min);
             float temp_max = ((x[5] << 8) | x[4]) / 10.0;
             id(pack_2_temp_max).publish_state(temp_max);
@@ -580,35 +597,42 @@ sensor:
   - platform: template
     name: "Module amount normal state"
     id: "module_amount_normal_state"
+    icon: mdi:database-search-outline
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Module amount charge disabled"
     id: "module_amount_charge_disabled"
+    icon: mdi:database-off-outline
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Module amount discharge disabled"
     id: "module_amount_discharge_disabled"
+    icon: mdi:database-off
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Module amount communication disconnected"
     id: "module_amount_communication_disconnected"
+    icon: mdi:database-remove-outline
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Module amount"
     id: "module_amount"
+    icon: mdi:database-sync-outline
     state_class: 'measurement'
     accuracy_decimals: 0
+
   - platform: template
     name: "Battery voltage"
     id: "battery_voltage"
+    icon: mdi:battery-high
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -617,14 +641,32 @@ sensor:
   - platform: template
     name: "Battery current"
     id: "battery_current"
+    icon: mdi:current-dc
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
     accuracy_decimals: 2
 
   - platform: template
+    name: "Battery Power"
+    id: "battery_power"
+    icon: mdi:battery-charging-medium
+    unit_of_measurement: 'W'
+    device_class: 'power'
+    state_class: 'measurement'
+    accuracy_decimals: 2
+    lambda: |-
+      if (id(battery_voltage).has_state() && id(battery_current).has_state()) {
+        return id(battery_voltage).state * id(battery_current).state;
+      } else {
+        return NAN;
+      }
+
+
+  - platform: template
     name: "Battery temperature"
     id: "battery_temperature"
+    icon: mdi:thermometer
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -633,6 +675,7 @@ sensor:
   - platform: template
     name: "Battery charge voltage"
     id: "battery_charge_voltage"
+    icon: mdi:battery-charging-high
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -641,6 +684,7 @@ sensor:
   - platform: template
     name: "Battery discharge voltage"
     id: "battery_discharge_voltage"
+    icon: mdi:battery-charging-low
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -649,6 +693,7 @@ sensor:
   - platform: template
     name: "Battery charge current limit"
     id: "battery_charge_current_limit"
+    icon: mdi:battery-arrow-down-outline
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -657,6 +702,7 @@ sensor:
   - platform: template
     name: "Battery discharge current limit"
     id: "battery_discharge_current_limit"
+    icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -665,14 +711,25 @@ sensor:
   - platform: template
     name: "Battery SoC"
     id: "battery_soc"
+    icon: mdi:battery
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
+    name: "Remaining Energy"
+    id: "remaining_energy"
+    unit_of_measurement: 'kWh'
+    icon: mdi:battery-clock-outline
+    accuracy_decimals: 2
+    lambda: |-
+      return (id(pack_1_soc).state + id(pack_2_soc).state) * ((id(pack_1_voltage).state + id(pack_2_voltage).state) / 2) / 1000;
+
+  - platform: template
     name: "Battery SoH"
     id: "battery_soh"
+    icon: mdi:battery-heart
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
@@ -681,9 +738,10 @@ sensor:
   - platform: template
     name: "Total capacity"
     id: "total_capacity"
+    icon: mdi:battery-charging-high
     unit_of_measurement: 'Ah'
-    device_class: 'energy'
-    state_class: 'total_increasing'
+#    device_class: 'battery'
+#    state_class: 'measurement'
     accuracy_decimals: 0
       
             
@@ -691,6 +749,7 @@ sensor:
   - platform: template
     name: "Battery max cell voltage"
     id: "battery_max_cell_voltage"
+    icon: mdi:battery-medium
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -699,6 +758,7 @@ sensor:
   - platform: template
     name: "Battery min cell voltage"
     id: "battery_min_cell_voltage"
+    icon: mdi:battery-low
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -707,6 +767,7 @@ sensor:
   - platform: template
     name: "Battery temp max"
     id: "battery_temp_max"
+    icon: mdi:thermometer-high
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -715,6 +776,7 @@ sensor:
   - platform: template
     name: "Battery temp min"
     id: "battery_temp_min"
+    icon: mdi:thermometer-low
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -723,6 +785,7 @@ sensor:
   - platform: template
     name: "Battery array charge current limit"
     id: "battery_array_charge_current_limit"
+    icon: mdi:battery-arrow-down-outline
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -731,66 +794,102 @@ sensor:
   - platform: template
     name: "Battery array discharge current limit"
     id: "battery_array_discharge_current_limit"
+    icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
     accuracy_decimals: 0
+
+  - platform: template
+    name: "Batteries Charged"
+    id: "batteries_charged"
+    icon: mdi:meter-electric-outline
+    unit_of_measurement: 'kWh'
+    device_class: 'energy'
+    state_class: 'total_increasing'
+    accuracy_decimals: 3
+    filters:
+      - throttle: 1s
+    lambda: |-
+      return id(pack_1_charged).state + id(pack_2_charged).state;
+
+  - platform: template
+    name: "Batteries Discharged"
+    id: "batteries_discharged"
+    icon: mdi:meter-electric
+    unit_of_measurement: 'kWh'
+    device_class: 'energy'
+    state_class: 'total_increasing'
+    accuracy_decimals: 3
+    filters:
+      - throttle: 1s
+    lambda: |-
+      return id(pack_1_discharged).state + id(pack_2_discharged).state;
 
 ###########################################################################################################
 # Pack 1: 
 ########################################################################################################### 
 
   - platform: template
-    name: "Pack 1 counts of charge over voltage "
+    name: "Pack 1 charge over voltage count"
     id: "pack_1_charge_over_voltage_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0   
 
   - platform: template
-    name: "Pack 1 counts of discharge under voltage"
+    name: "Pack 1 discharge under voltage count"
     id: "pack_1_discharge_under_voltage_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
-    name: "Pack 1 counts of short circuit"
+    name: "Pack 1 short circuit count"
     id: "pack_1_short_circuit_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
   
   - platform: template
-    name: "Pack 1 counts of mos over temp"
+    name: "Pack 1 mos over temp count"
     id: "pack_1_mos_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
-    name: "Pack 1 counts of charge over current"
+    name: "Pack 1 charge over current count"
     id: "pack_1_charge_over_current_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0   
 
   - platform: template
-    name: "Pack 1 counts of discharge under current"
+    name: "Pack 1 discharge under current count"
     id: "pack_1_discharge_over_current_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
-    name: "Pack 1 counts of charge over temp"
+    name: "Pack 1 charge over temp count"
     id: "pack_1_charge_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
   
   - platform: template
-    name: "Pack 1 counts of discharge over temp"
+    name: "Pack 1 discharge over temp count"
     id: "pack_1_discharge_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1 voltage"
     id: "pack_1_voltage"
+    icon: mdi:battery-high
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -799,14 +898,31 @@ sensor:
   - platform: template
     name: "Pack 1 current"
     id: "pack_1_current"
+    icon: mdi:current-dc
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
     accuracy_decimals: 1
 
   - platform: template
+    name: "Pack 1 Power"
+    id: "pack_1_power"
+    icon: mdi:battery-charging-medium
+    unit_of_measurement: 'W'
+    device_class: 'power'
+    state_class: 'measurement'
+    accuracy_decimals: 2
+    lambda: |-
+      if (id(pack_1_voltage).has_state() && id(pack_1_current).has_state()) {
+        return id(pack_1_voltage).state * id(pack_1_current).state;
+      } else {
+        return NAN;
+      }
+
+  - platform: template
     name: "Pack 1 max charge current"
     id: "pack_1_max_charge_current"
+    icon: mdi:battery-arrow-down-outline
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -815,6 +931,7 @@ sensor:
   - platform: template
     name: "Pack 1 max discharge current"
     id: "pack_1_max_discharge_current"
+    icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -823,6 +940,7 @@ sensor:
   - platform: template
     name: "Pack 1 SoC"
     id: "pack_1_soc"
+    icon: mdi:battery
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
@@ -831,6 +949,7 @@ sensor:
   - platform: template
     name: "Pack 1 SoH"
     id: "pack_1_soh"
+    icon: mdi:battery-heart
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
@@ -839,18 +958,20 @@ sensor:
   - platform: template
     name: "Pack 1 max cell voltage"
     id: "pack_1_max_cell_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-medium
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3    
+    accuracy_decimals: 0   
 
   - platform: template
     name: "Pack 1 min cell voltage"
     id: "pack_1_min_cell_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-low
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3
+    accuracy_decimals: 0
     on_value:
       then:
         - component.update: pack_1_imbalance 
@@ -858,16 +979,18 @@ sensor:
   - platform: template
     name: "Pack 1 imbalance"
     id: "pack_1_imbalance"
-    unit_of_measurement: 'mV'
+    icon: mdi:scale-unbalanced
+    unit_of_measurement: 'ΔmV'
     device_class: 'voltage'
     state_class: 'measurement'
     accuracy_decimals: 0 
     lambda: |-
-      return ((id(pack_1_max_cell_voltage).state - id(pack_1_min_cell_voltage).state)) * 1000;
+      return ((id(pack_1_max_cell_voltage).state - id(pack_1_min_cell_voltage).state));
 
   - platform: template
     name: "Pack 1 temp max"
     id: "pack_1_temp_max"
+    icon: mdi:thermometer-high
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -876,6 +999,7 @@ sensor:
   - platform: template
     name: "Pack 1 temp min"
     id: "pack_1_temp_min"
+    icon: mdi:thermometer-low
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -884,6 +1008,7 @@ sensor:
   - platform: template
     name: "Pack 1 MosMax"
     id: "pack_1_mosmax"
+    icon: mdi:thermometer-lines
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -892,6 +1017,7 @@ sensor:
   - platform: template
     name: "Pack 1 HeatMem"
     id: "pack_1_heatmem"
+    internal: true
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -900,12 +1026,14 @@ sensor:
   - platform: template
     name: "Pack 1 cycles"
     id: "pack_1_cycles"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0  
 
   - platform: template
     name: "Pack 1 charged"
     id: "pack_1_charged"
+    icon: mdi:meter-electric-outline
     unit_of_measurement: 'kWh'
     device_class: 'energy'
     state_class: 'total_increasing'
@@ -916,6 +1044,7 @@ sensor:
   - platform: template
     name: "Pack 1 discharged"
     id: "pack_1_discharged"
+    icon: mdi:meter-electric
     unit_of_measurement: 'kWh'
     device_class: 'energy'
     state_class: 'total_increasing'
@@ -930,18 +1059,20 @@ sensor:
   - platform: template
     name: "Pack 1: Cell_high"
     id: "pack_1_cell_high_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_low"
     id: "pack_1_cell_low_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0 
 
 ###########################################################################################################
 # Pack 1: Cell voltages
@@ -950,186 +1081,211 @@ sensor:
   - platform: template
     name: "Pack 1: Cell_01"
     id: "pack_1_cell_01_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_02"
     id: "pack_1_cell_02_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_03"
     id: "pack_1_cell_03_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_04"
     id: "pack_1_cell_04_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_05"
     id: "pack_1_cell_05_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_06"
     id: "pack_1_cell_06_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_07"
     id: "pack_1_cell_07_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_08"
     id: "pack_1_cell_08_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_09"
     id: "pack_1_cell_09_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_10"
     id: "pack_1_cell_10_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_11"
     id: "pack_1_cell_11_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_12"
     id: "pack_1_cell_12_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_13"
     id: "pack_1_cell_13_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_14"
     id: "pack_1_cell_14_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_15"
     id: "pack_1_cell_15_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 1: Cell_16"
     id: "pack_1_cell_16_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
     
 ###########################################################################################################
 # Pack 2: 
 ###########################################################################################################  
 
   - platform: template
-    name: "Pack 2 counts of charge over voltage"
+    name: "Pack 2 charge over voltage count"
     id: "pack_2_charge_over_voltage_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0   
 
   - platform: template
-    name: "Pack 2 counts of discharge under voltage"
+    name: "Pack 2 discharge under voltage count"
     id: "pack_2_discharge_under_voltage_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
-    name: "Pack 2 counts of short circuit"
+    name: "Pack 2 short circuit count"
     id: "pack_2_short_circuit_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
   
   - platform: template
-    name: "Pack 2 counts of mos over temp"
+    name: "Pack 2 mos over temp count"
     id: "pack_2_mos_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
-    name: "Pack 2 counts of charge over current"
+    name: "Pack 2 charge over current count"
     id: "pack_2_charge_over_current_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0   
 
   - platform: template
-    name: "Pack 2 counts of discharge under current"
+    name: "Pack 2 discharge under current count"
     id: "pack_2_discharge_over_current_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
-    name: "Pack 2 counts of charge over temp"
+    name: "Pack 2 charge over temp count"
     id: "pack_2_charge_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
   
   - platform: template
-    name: "Pack 2 counts of discharge over temp"
+    name: "Pack 2 discharge over temp count"
     id: "pack_2_discharge_over_temp_count"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2 voltage"
     id: "pack_2_voltage"
+    icon: mdi:battery-high
     unit_of_measurement: 'V'
     device_class: 'voltage'
     state_class: 'measurement'
@@ -1138,14 +1294,31 @@ sensor:
   - platform: template
     name: "Pack 2 current"
     id: "pack_2_current"
+    icon: mdi:current-dc
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
     accuracy_decimals: 1
+  
+  - platform: template
+    name: "Pack 2 Power"
+    id: "pack_2_power"
+    icon: mdi:battery-charging-medium
+    unit_of_measurement: 'W'
+    device_class: 'power'
+    state_class: 'measurement'
+    accuracy_decimals: 2
+    lambda: |-
+      if (id(pack_2_voltage).has_state() && id(pack_2_current).has_state()) {
+        return id(pack_2_voltage).state * id(pack_2_current).state;
+      } else {
+        return NAN;
+      }
 
   - platform: template
     name: "Pack 2 max charge current"
     id: "pack_2_max_charge_current"
+    icon: mdi:battery-arrow-down-outline
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -1154,6 +1327,7 @@ sensor:
   - platform: template
     name: "Pack 2 max discharge current"
     id: "pack_2_max_discharge_current"
+    icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
     device_class: 'current'
     state_class: 'measurement'
@@ -1162,6 +1336,7 @@ sensor:
   - platform: template
     name: "Pack 2 SoC"
     id: "pack_2_soc"
+    icon: mdi:battery
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
@@ -1170,6 +1345,7 @@ sensor:
   - platform: template
     name: "Pack 2 SoH"
     id: "pack_2_soh"
+    icon: mdi:battery-heart
     unit_of_measurement: '%'
     device_class: 'battery'
     state_class: 'measurement'
@@ -1178,18 +1354,20 @@ sensor:
   - platform: template
     name: "Pack 2 max cell voltage"
     id: "pack_2_max_cell_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-medium
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3    
+    accuracy_decimals: 0   
 
   - platform: template
     name: "Pack 2 min cell voltage"
     id: "pack_2_min_cell_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-low
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0 
     on_value:
       then:
         - component.update: pack_2_imbalance 
@@ -1197,16 +1375,18 @@ sensor:
   - platform: template
     name: "Pack 2 imbalance"
     id: "pack_2_imbalance"
-    unit_of_measurement: 'mV'
+    icon: mdi:scale-unbalanced
+    unit_of_measurement: 'ΔmV'
     device_class: 'voltage'
     state_class: 'measurement'
     accuracy_decimals: 0 
     lambda: |-
-      return ((id(pack_2_max_cell_voltage).state - id(pack_2_min_cell_voltage).state)) * 1000;
+      return ((id(pack_2_max_cell_voltage).state - id(pack_2_min_cell_voltage).state));
 
   - platform: template
     name: "Pack 2 temp max"
     id: "pack_2_temp_max"
+    icon: mdi:thermometer-high
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -1215,6 +1395,7 @@ sensor:
   - platform: template
     name: "Pack 2 temp min"
     id: "pack_2_temp_min"
+    icon: mdi:thermometer-low
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -1223,6 +1404,7 @@ sensor:
   - platform: template
     name: "Pack 2 MosMax"
     id: "pack_2_mosmax"
+    icon: mdi:thermometer-lines
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -1231,6 +1413,7 @@ sensor:
   - platform: template
     name: "Pack 2 HeatMem"
     id: "pack_2_heatmem"
+    internal: true
     unit_of_measurement: '°C'
     device_class: 'temperature'
     state_class: 'measurement'
@@ -1239,12 +1422,14 @@ sensor:
   - platform: template
     name: "Pack 2 cycles"
     id: "pack_2_cycles"
+    icon: mdi:counter
     state_class: 'measurement'
     accuracy_decimals: 0 
 
   - platform: template
     name: "Pack 2 charged"
     id: "pack_2_charged"
+    icon: mdi:meter-electric-outline
     unit_of_measurement: 'kWh'
     device_class: 'energy'
     state_class: 'total_increasing'
@@ -1255,6 +1440,7 @@ sensor:
   - platform: template
     name: "Pack 2 discharged"
     id: "pack_2_discharged"
+    icon: mdi:meter-electric
     unit_of_measurement: 'kWh'
     device_class: 'energy'
     state_class: 'total_increasing'
@@ -1262,157 +1448,175 @@ sensor:
     filters:
       - throttle: 1s
 
-###########################################################################################################
-# Pack 2: Cell High and Lows
-###########################################################################################################  
+# ###########################################################################################################
+# # Pack 2: Cell High and Lows
+# ###########################################################################################################  
 
   - platform: template
     name: "Pack 2: Cell_high"
     id: "pack_2_cell_high_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0 
 
   - platform: template
     name: "Pack 2: Cell_low"
     id: "pack_2_cell_low_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
-###########################################################################################################
-# Pack 2: Cell voltages
-###########################################################################################################
+# ###########################################################################################################
+# # Pack 2: Cell voltages
+# ###########################################################################################################
 
   - platform: template
     name: "Pack 2: Cell_01"
     id: "pack_2_cell_01_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0 
 
   - platform: template
     name: "Pack 2: Cell_02"
     id: "pack_2_cell_02_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0 
 
   - platform: template
     name: "Pack 2: Cell_03"
+    icon: mdi:battery-check-outline
     id: "pack_2_cell_03_voltage"
-    unit_of_measurement: 'V'
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_04"
     id: "pack_2_cell_04_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_05"
     id: "pack_2_cell_05_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_06"
     id: "pack_2_cell_06_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_07"
     id: "pack_2_cell_07_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_08"
     id: "pack_2_cell_08_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_09"
     id: "pack_2_cell_09_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_10"
     id: "pack_2_cell_10_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_11"
     id: "pack_2_cell_11_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_12"
     id: "pack_2_cell_12_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_13"
     id: "pack_2_cell_13_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_14"
     id: "pack_2_cell_14_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_15"
     id: "pack_2_cell_15_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
   - platform: template
     name: "Pack 2: Cell_16"
     id: "pack_2_cell_16_voltage"
-    unit_of_measurement: 'V'
+    icon: mdi:battery-check-outline
+    unit_of_measurement: 'mV'
     device_class: 'voltage'
     state_class: 'measurement'
-    accuracy_decimals: 3 
+    accuracy_decimals: 0
 
 ###########################################################################################################
 # Pack 1 and 2: Cell High and Lows
@@ -1422,6 +1626,7 @@ text_sensor:
   - platform: template
     name: "Cell manufacturer"
     id: "cell_manufacturer"
+    icon: mdi:domain
 
   - platform: template
     name: "Pack 1: Cell High"
@@ -1442,18 +1647,144 @@ text_sensor:
   - platform: template
     name: "Pack 1 operation mode"
     id: "pack_1_operation_mode"
+    icon: mdi:state-machine
 
   - platform: template
     name: "Pack 1 fault level"
     id: "pack_1_fault_level" 
+    icon: mdi:alarm-light-outline
 
   - platform: template
     name: "Pack 2 operation mode"
     id: "pack_2_operation_mode"
+    icon: mdi:state-machine
 
   - platform: template
     name: "Pack 2 fault level"
     id: "pack_2_fault_level"
+    icon: mdi:alarm-light-outline
+
+###########################################################################################################
+#  Common warniung sensors
+###########################################################################################################
+
+  - platform: template
+    name: "Temperature Status"
+    id: "temperature_status"
+    icon: mdi:sticker-alert-outline
+    lambda: |-
+      std::string status = "";
+
+      if (id(temperature_sampling_fail).state) {
+        status += "Temperature Sampling Fail, ";
+      }
+      if (id(cell_low_temperature_charge).state) {
+        status += "Cell Low Temperature (Charge), ";
+      }
+      if (id(cell_high_temperature_charge).state) {
+        status += "Cell High Temperature (Charge), ";
+      }
+      if (id(cell_under_temperature_charge).state) {
+        status += "Cell Under Temperature (Charge), ";
+      }
+      if (id(cell_over_temperature_charge).state) {
+        status += "Cell Over Temperature (Charge), ";
+      }
+      if (id(cell_low_temperature_discharge).state) {
+        status += "Cell Low Temperature (Discharge), ";
+      }
+      if (id(cell_high_temperature_discharge).state) {
+        status += "Cell High Temperature (Discharge), ";
+      }
+      if (id(heating_film_high_temperature).state) {
+        status += "Heating Film High Temperature, ";
+      }
+      if (id(heating_film_over_temperature).state) {
+        status += "Heating Film Over Temperature, ";
+      }
+      if (id(mos_high_temperature).state) {
+        status += "MOS High Temperature, ";
+      }
+      if (id(mos_over_temperature).state) {
+        status += "MOS Over Temperature, ";
+      }
+      if (id(cell_temperature_high_difference).state) {
+        status += "Cell Temperature High Difference, ";
+      }
+      if (id(cell_temperature_over_difference).state) {
+        status += "Cell Temperature Over Difference, ";
+      }
+      if (id(heat_error).state) {
+        status += "Heat Error, ";
+      }
+      if (id(heat_mos_adhession).state) {
+        status += "Heat MOSFET Adhesion, ";
+      }
+
+      if (status.empty()) {
+        return std::string("Ok");
+      } else {
+        return status.substr(0, status.length() - 2);
+      }
+
+  - platform: template
+    name: "Voltage Status"
+    id: "voltage_status"
+    icon: mdi:sticker-alert-outline
+    lambda: |-
+      std::string status = "";
+      auto append_status = [&](bool condition, const char* message) {
+        if (condition) status += std::string(message) + ", ";
+      };
+
+      append_status(id(cell_voltage_sampling_fail).state, "Cell Voltage Sampling Fail");
+      append_status(id(module_low_voltage).state, "Module Low Voltage");
+      append_status(id(module_high_voltage).state, "Module High Voltage");
+      append_status(id(module_under_voltage).state, "Module Under Voltage");
+      append_status(id(module_over_voltage).state, "Module Over Voltage");
+      append_status(id(cell_low_voltage).state, "Cell Low Voltage");
+      append_status(id(cell_high_voltage).state, "Cell High Voltage");
+      append_status(id(cell_under_voltage).state, "Cell Under Voltage");
+      append_status(id(cell_over_voltage).state, "Cell Over Voltage");
+      append_status(id(cell_voltage_high_difference).state, "Cell Voltage High Difference");
+      append_status(id(cell_voltage_over_difference).state, "Cell Voltage Over Difference");
+
+      return status.empty() ? std::string("Ok") : status.substr(0, status.length() - 2);
+
+  - platform: template
+    name: "Current Status"
+    id: "current_status"
+    icon: mdi:sticker-alert-outline
+    lambda: |-
+      std::string status = "";
+      auto append_status = [&](bool condition, const char* message) {
+        if (condition) status += std::string(message) + ", ";
+      };
+
+      append_status(id(discharge_high_current).state, "Discharge High Current");
+      append_status(id(charge_high_current).state, "Charge High Current");
+
+      return status.empty() ? std::string("Ok") : status.substr(0, status.length() - 2);
+
+
+  - platform: template
+    name: "BMS Status"
+    id: "bms_status"
+    icon: mdi:sticker-alert-outline
+    lambda: |-
+      std::string status = "";
+      auto append_status = [&](bool condition, const char* message) {
+        if (condition) status += std::string(message) + ", ";
+      };
+
+      append_status(id(master_address_repeat).state, "Master Address Repeat");
+      append_status(id(pcs_communication_fail).state, "PCS Communication Fail");
+      append_status(id(internal_communication_fail).state, "Internal Communication Fail");
+      append_status(id(eeprom_error).state, "EEPROM Error");
+      append_status(id(mosfet_short_circuit).state, "MOSFET Short Circuit");
+      append_status(id(afe_communication_fail).state, "AFE Communication Fail");
+
+      return status.empty() ? std::string("Ok") : status.substr(0, status.length() - 2);
 
 ###########################################################################################################
 # Status sensors
@@ -1465,363 +1796,485 @@ binary_sensor:
   - platform: template
     name: "Cell under temperature charge"
     id: "cell_under_temperature_charge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell over temperature charge"
     id: "cell_over_temperature_charge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Discharge over current"
     id: "discharge_over_current"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Charge over current"
     id: "charge_over_current"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Module under voltage"
     id: "module_under_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Module over voltage"
     id: "module_over_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell under voltage"
     id: "cell_under_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell over voltage"
     id: "cell_over_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Heating film over temperature"
     id: "heating_film_over_temperature"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Mos over temperature"
     id: "mos_over_temperature"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell temperature over difference"
     id: "cell_temperature_over_difference"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell voltage over difference"
     id: "cell_voltage_over_difference"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell under temperature discharge"
     id: "cell_under_temperature_discharge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell over temperature discharge"
     id: "cell_over_temperature_discharge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Master address_repeat"
     id: "master_address_repeat"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "PCS communication fail"
     id: "pcs_communication_fail"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Internal communication fail"
     id: "internal_communication_fail"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "EEPROM error"
     id: "eeprom_error"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Mosfet short circuit"
     id: "mosfet_short_circuit"            
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Temperature sampling fail"
     id: "temperature_sampling_fail"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell voltage sampling fail"
     id: "cell_voltage_sampling_fail"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "AFE communication fail"
     id: "afe_communication_fail"  
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell low temperature charge"
     id: "cell_low_temperature_charge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell high temperature charge"
     id: "cell_high_temperature_charge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Discharge high current"
     id: "discharge_high_current"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Charge high current"
     id: "charge_high_current"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Module low voltage"
     id: "module_low_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Module high voltage"
     id: "module_high_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell low voltage"
     id: "cell_low_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell high voltage"
     id: "cell_high_voltage"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Heat error"
     id: "heat_error"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Heat mosfet adhession"
     id: "heat_mos_adhession"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Heating film high temperature"
     id: "heating_film_high_temperature"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Mosfet high temperature"
     id: "mos_high_temperature"            
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell temperature high difference"
     id: "cell_temperature_high_difference"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell voltage high difference"
     id: "cell_voltage_high_difference"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell low temperature discharge"
     id: "cell_low_temperature_discharge"
+    icon: mdi:alert-circle-outline
 
   - platform: template
     name: "Cell high temperature discharge"
     id: "cell_high_temperature_discharge"       
-    
+    icon: mdi:alert-circle-outline
+
   - platform: template
     name: "Pack 1 cell 01 balancing"
     id: "pack_1_cell_1_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 02 balancing"
     id: "pack_1_cell_2_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 03 balancing"
     id: "pack_1_cell_3_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 04 balancing"
     id: "pack_1_cell_4_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 05 balancing"
     id: "pack_1_cell_5_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 06 balancing"
     id: "pack_1_cell_6_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 07 balancing"
     id: "pack_1_cell_7_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 08 balancing"
     id: "pack_1_cell_8_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 09 balancing"
     id: "pack_1_cell_9_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 10 balancing"
     id: "pack_1_cell_10_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 11 balancing"
     id: "pack_1_cell_11_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 12 balancing"
     id: "pack_1_cell_12_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 13 balancing"
     id: "pack_1_cell_13_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 14 balancing"
     id: "pack_1_cell_14_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 15 balancing"
     id: "pack_1_cell_15_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 1 cell 16 balancing"
     id: "pack_1_cell_16_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 01 balancing"
     id: "pack_2_cell_1_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 02 balancing"
     id: "pack_2_cell_2_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 03 balancing"
     id: "pack_2_cell_3_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 04 balancing"
     id: "pack_2_cell_4_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 05 balancing"
     id: "pack_2_cell_5_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 06 balancing"
     id: "pack_2_cell_6_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 07 balancing"
     id: "pack_2_cell_7_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 08 balancing"
     id: "pack_2_cell_8_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 09 balancing"
     id: "pack_2_cell_9_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 10 balancing"
     id: "pack_2_cell_10_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 11 balancing"
     id: "pack_2_cell_11_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 12 balancing"
     id: "pack_2_cell_12_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 13 balancing"
     id: "pack_2_cell_13_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 14 balancing"
     id: "pack_2_cell_14_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 15 balancing"
     id: "pack_2_cell_15_balancing"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 2 cell 16 balancing"
     id: "pack_2_cell_16_balancing"
+    icon: mdi:radiobox-blank
+
 # 0x35C byte 0
   - platform: template
     name: "Charging allowed"
     id: "charging_allowed"
+    icon: mdi:battery-arrow-down-outline
 
   - platform: template
     name: "Discharging allowed"
     id: "discharging_allowed"   
+    icon: mdi:battery-arrow-up
 
   - platform: template
     name: "Request force charge 1"
     id: "request_force_charge_1"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Request force charge 2"
     id: "request_force_charge_2"
+    icon: mdi:radiobox-blank
 
   - platform: template
     name: "Request full charge"
     id: "request_full_charge"
+    icon: mdi:radiobox-blank
+
 # 0x110
   - platform: template
     name: "Pack 1 heat mos state"
     id: "pack_1_heat_mos_state"
+    icon: mdi:chip
 
   - platform: template
     name: "Pack 1 precharge mos state"
     id: "pack_1_precharge_mos_state"   
+    icon: mdi:chip
 
   - platform: template
     name: "Pack 1 discharge mos state"
     id: "pack_1_discharge_mos_state"
+    icon: mdi:memory
 
   - platform: template
     name: "Pack 1 charge mos state"
     id: "pack_1_charge_mos_state"
+    icon: mdi:memory-arrow-down
 
   - platform: template
     name: "Pack 1 parallel finish"
     id: "pack_1_parallel_finish"
+    icon: mdi:connection
 
 # 0x111
   - platform: template
     name: "Pack 2 heat mos state"
     id: "pack_2_heat_mos_state"
+    icon: mdi:chip
 
   - platform: template
     name: "Pack 2 precharge mos state"
     id: "pack_2_precharge_mos_state"   
+    icon: mdi:chip
 
   - platform: template
     name: "Pack 2 discharge mos state"
     id: "pack_2_discharge_mos_state"
+    icon: mdi:memory
 
   - platform: template
     name: "Pack 2 charge mos state"
     id: "pack_2_charge_mos_state"
+    icon: mdi:memory-arrow-down
 
   - platform: template
     name: "Pack 2 parallel finish"
     id: "pack_2_parallel_finish"
+    icon: mdi:connection
+
+switch:
+
+###########################################################################################################
+#      Battery Heater
+###########################################################################################################
+   
+  - platform: gpio
+    pin: GPIO11
+    id: pack_heating_relay
+    name: "Heating Relay"
+    icon: mdi:heating-coil
+
+interval:
+  - interval: 5min
+    then:
+      - if:
+          condition:
+            or:
+              - lambda: |-
+                  return id(pack_1_temp_min).state <= 20.0;
+              - lambda: |-
+                  return id(pack_2_temp_min).state <= 20.0;
+          then:
+            - switch.turn_on: pack_heating_relay
+            - logger.log: "Temperature below 20°C, heater on"
+      - if:
+          condition:
+            and:
+              - lambda: |-
+                  return id(pack_1_temp_min).state >= 22.0;
+              - lambda: |-
+                  return id(pack_2_temp_min).state >= 22.0;
+          then:
+            - switch.turn_off: pack_heating_relay
+            - logger.log: "Temperature above 22°C, heater off"
+
+###########################################################################################################
+# Inverter heartbeat to prevent battery sleep mode ? Need to confirm 
+###########################################################################################################
+
+#  - interval: 5s
+#    then:
+#      - lambda: |-
+#          uint32_t can_id = 0x305;
+#          std::vector<uint8_t> canMessage = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#          id(pcs_can)->send_data(can_id, false, canMessage);
+#          ESP_LOGI("CAN", "Sent CAN message with ID: 0x%lx", static_cast<unsigned long>(can_id));
+
 
 ###########################################################################################################
 # CAN Senders
 ###########################################################################################################
-switch:
-  - platform: restart
-    name: "Restart Deye CAN ESP32"
+
 # switch:
-#   - platform: template
-#     id: "charge_discharge_off_button"
-#     name: "Charge off / Discharge off"
-#     device_class: switch
-#     turn_on_action :
-#     - logger.log: "Switch Turned On!"
-#     - canbus.send:
-#           data: [ 0x00 ]
-#           canbus_id: pcs_can
-#           can_id: 0x35C
-#     turn_off_action :
-#     - logger.log: "Switch Turned Off!"
 
 #   - platform: template
 #     id: "charge_discharge_on_button"
@@ -1835,6 +2288,20 @@ switch:
 #           can_id: 0x35C
 #     turn_off_action :
 #     - logger.log: "Switch Turned Off!"
+ 
+ #   - platform: template
+#     id: "charge_discharge_off_button"
+#     name: "Charge off / Discharge off"
+#     device_class: switch
+#     turn_on_action :
+#     - logger.log: "Switch Turned On!"
+#     - canbus.send:
+#           data: [ 0x00 ]
+#           canbus_id: pcs_can
+#           can_id: 0x35C
+#     turn_off_action :
+#     - logger.log: "Switch Turned Off!"
+
 
 #   - platform: template
 #     id: "charge_off_discharge_on_button"
@@ -1861,5 +2328,3 @@ switch:
 #           can_id: 0x35C
 #     turn_off_action :
 #     - logger.log: "Switch Turned Off!"
-
-  
