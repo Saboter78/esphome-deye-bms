@@ -280,8 +280,12 @@ canbus:
 ##########################################################################################################            
   - platform: esp32_can
     id: pcs_can
-    tx_pin: GPIO5 # CAN HIGH BLUE
-    rx_pin: GPIO4 # CAN LOW LIGHT-BLUE #4k7 from tja1050
+    tx_pin:
+      number: GPIO5 # CAN HIGH BLUE
+      ignore_strapping_warning: true
+    rx_pin:
+      number: GPIO4 # CAN LOW LIGHT-BLUE #4k7 from tja1050
+      ignore_strapping_warning: true
     can_id: 4
     bit_rate: 500KBPS
     on_frame:
