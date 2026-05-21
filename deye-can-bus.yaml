@@ -11,6 +11,8 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
     board_build.flash_size: 8MB
+  compile_process_limit: 1
+  build_path: /config/esphome/build/deye_pcs_ic
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -20,6 +22,9 @@ esp32:
     type: esp-idf
     sdkconfig_options:
       CONFIG_ESPTOOLPY_FLASHSIZE_8MB: y
+      COMPILER_OPTIMIZATION_PERF: y
+      CONFIG_LOG_DEFAULT_LEVEL: "3"
+      CONFIG_LWIP_IPV6: n
 
 # Enable logging
 logger:
@@ -830,6 +835,7 @@ sensor:
     device_class: 'power'
     state_class: 'measurement'
     accuracy_decimals: 2
+    update_interval: 10s
     lambda: |-
       if (id(battery_voltage).has_state() && id(battery_current).has_state()) {
         return id(battery_voltage).state * id(battery_current).state;
@@ -1087,6 +1093,7 @@ sensor:
     device_class: 'power'
     state_class: 'measurement'
     accuracy_decimals: 2
+    update_interval: 10s
     lambda: |-
       if (id(pack_1_voltage).has_state() && id(pack_1_current).has_state()) {
         return id(pack_1_voltage).state * id(pack_1_current).state;
@@ -1156,7 +1163,7 @@ sensor:
     id: "pack_1_imbalance"
     icon: mdi:scale-unbalanced
     unit_of_measurement: 'ΔmV'
-    device_class: 'voltage'
+#    device_class: 'voltage'
     state_class: 'measurement'
     accuracy_decimals: 0 
     lambda: |-
@@ -1483,6 +1490,7 @@ sensor:
     device_class: 'power'
     state_class: 'measurement'
     accuracy_decimals: 2
+    update_interval: 10s
     lambda: |-
       if (id(pack_2_voltage).has_state() && id(pack_2_current).has_state()) {
         return id(pack_2_voltage).state * id(pack_2_current).state;
@@ -1552,7 +1560,7 @@ sensor:
     id: "pack_2_imbalance"
     icon: mdi:scale-unbalanced
     unit_of_measurement: 'ΔmV'
-    device_class: 'voltage'
+#    device_class: 'voltage'
     state_class: 'measurement'
     accuracy_decimals: 0 
     lambda: |-
@@ -1879,6 +1887,7 @@ sensor:
     device_class: 'power'
     state_class: 'measurement'
     accuracy_decimals: 2
+    update_interval: 10s
     lambda: |-
       if (id(pack_3_voltage).has_state() && id(pack_3_current).has_state()) {
         return id(pack_3_voltage).state * id(pack_3_current).state;
@@ -1948,7 +1957,7 @@ sensor:
     id: "pack_3_imbalance"
     icon: mdi:scale-unbalanced
     unit_of_measurement: 'ΔmV'
-    device_class: 'voltage'
+#    device_class: 'voltage'
     state_class: 'measurement'
     accuracy_decimals: 0 
     lambda: |-
