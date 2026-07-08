@@ -992,7 +992,7 @@ sensor:
     filters:
       - throttle: 1s
     lambda: |-
-      return id(pack_1_charged).state + id(pack_3_charged).state + id(pack_3_charged).state;
+      return id(pack_1_charged).state + id(pack_2_charged).state + id(pack_3_charged).state;
       
   - platform: template
     name: "Batteries Discharged"
@@ -1005,7 +1005,7 @@ sensor:
     filters:
       - throttle: 1s
     lambda: |-
-      return id(pack_1_discharged).state + id(pack_3_discharged).state + id(pack_3_discharged).state;
+      return id(pack_1_discharged).state + id(pack_2_discharged).state + id(pack_3_discharged).state;
 
 ###########################################################################################################
 # Pack 1: 
