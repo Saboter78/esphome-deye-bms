@@ -3408,84 +3408,84 @@ binary_sensor:
     id: "pack_3_cell_16_balancing"
     icon: mdi:radiobox-blank
     
-   - platform: template
+  - platform: template
     name: "Pack 4  cell 01 balancing"
-    id: "pack_4 _cell_1_balancing"
+    id: "pack_4_cell_1_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 02 balancing"
-    id: "pack_4 _cell_2_balancing"
+    id: "pack_4_cell_2_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 03 balancing"
-    id: "pack_4 _cell_3_balancing"
+    id: "pack_4_cell_3_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 04 balancing"
-    id: "pack_4 _cell_4_balancing"
+    id: "pack_4_cell_4_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 05 balancing"
-    id: "pack_4 _cell_5_balancing"
+    id: "pack_4_cell_5_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 06 balancing"
-    id: "pack_4 _cell_6_balancing"
+    id: "pack_4_cell_6_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 07 balancing"
-    id: "pack_4 _cell_7_balancing"
+    id: "pack_4_cell_7_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 08 balancing"
-    id: "pack_4 _cell_8_balancing"
+    id: "pack_4_cell_8_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 09 balancing"
-    id: "pack_4 _cell_9_balancing"
+    id: "pack_4_cell_9_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 10 balancing"
-    id: "pack_4 _cell_10_balancing"
+    id: "pack_4_cell_10_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 11 balancing"
-    id: "pack_4 _cell_11_balancing"
+    id: "pack_4_cell_11_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 12 balancing"
-    id: "pack_4 _cell_12_balancing"
+    id: "pack_4_cell_12_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 13 balancing"
-    id: "pack_4 _cell_13_balancing"
+    id: "pack_4_cell_13_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 14 balancing"
-    id: "pack_4 _cell_14_balancing"
+    id: "pack_4_cell_14_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 15 balancing"
-    id: "pack_4 _cell_15_balancing"
+    id: "pack_4_cell_15_balancing"
     icon: mdi:radiobox-blank
 
   - platform: template
     name: "Pack 4  cell 16 balancing"
-    id: "pack_4 _cell_16_balancing"
+    id: "pack_4_cell_16_balancing"
     icon: mdi:radiobox-blank
 
 
