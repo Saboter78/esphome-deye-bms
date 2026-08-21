@@ -3664,17 +3664,16 @@ interval:
             - logger.log: "Temperature above 22°C, heater off"
 
 ###########################################################################################################
-# Inverter heartbeat to prevent battery sleep mode ? Need to confirm 
+# Inverter heartbeat to prevent battery sleep mode
 ###########################################################################################################
 
-#  - interval: 5s
+#  - interval: 1s
 #    then:
-#      - lambda: |-
-#          uint32_t can_id = 0x305;
-#          std::vector<uint8_t> canMessage = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#          id(pcs_can)->send_data(can_id, false, canMessage);
-#          ESP_LOGI("CAN", "Sent CAN message with ID: 0x%lx", static_cast<unsigned long>(can_id));
-
+#      - canbus.send:
+#          canbus_id: pcs_can
+#          can_id: 0x305
+#          use_extended_id: false
+#          data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
 ###########################################################################################################
 # CAN Senders
